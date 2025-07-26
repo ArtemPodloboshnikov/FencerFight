@@ -137,13 +137,13 @@ export default function FightScreen() {
   };
 
   /* helpers */
-  const addPoints = (fighter: 1 | 2, zone: keyof typeof hitZones) => {
+  const addPoints = (setter: React.Dispatch<React.SetStateAction<number>>, zone: keyof typeof hitZones) => {
     const p = hitZones[zone];
-    fighter === 1 ? setScore1((s) => s + p) : setScore2((s) => s + p);
+    setter((s) => s + p);
   };
 
-  const removePoints = (fighter: 1 | 2) => {
-    fighter === 1 ? setScore1((s) => s - 1) : setScore2((s) => s - 1);
+  const removePoints = (setter: React.Dispatch<React.SetStateAction<number>>) => {
+    setter((s) => s - 1);
   };
 
   useEffect(() => {
@@ -152,57 +152,54 @@ export default function FightScreen() {
 
   return (
     <View style={styles.container}>
-      {/* ЛЕВАЯ ПОЛОВИНА */}
-      <View style={[styles.side, styles.red]}>
-        <Text style={styles.name}>{fighter1}</Text>
-        <Text style={styles.score}>{score1}</Text>
+      {/* левая и правая половины */}
+      {[
+        {
+          name: fighter1,
+          score: score1,
+          setScore: setScore1,
+          protests: protests1,
+          setProtests: setProtests1,
+          warnings: warnings1,
+          setWarnings: setWarnings1,
+          styleWrap: styles.red
+        },
+        {
+          name: fighter2,
+          score: score2,
+          setScore: setScore2,
+          protests: protests2,
+          setProtests: setProtests2,
+          warnings: warnings2,
+          setWarnings: setWarnings2,
+          styleWrap: styles.blue
+        }
+      ].map((data, i)=>(
+        <View style={[styles.side, data.styleWrap]} key={i}>
+          <Text style={styles.name}>{data.name.replace(/ /g, '\n')}</Text>
+          <Text style={styles.score}>{data.score}</Text>
 
-        {Object.entries(hitZones).map(([zone, pts]) => (
-          <TouchableOpacity
-            key={`l-${zone}`}
-            style={styles.zoneBtn}
-            onPress={() => addPoints(1, zone as keyof typeof hitZones)}
-          >
-            <Text style={styles.zoneTxt}>
-              {I18n.t(zone)} (+{pts})
-            </Text>
-          </TouchableOpacity>
-        ))}
-          <TouchableOpacity
-            style={styles.zoneBtn}
-            onPress={() => removePoints(1)}
-          >
-            <Minus size={28} color={FG} />
-          </TouchableOpacity>
-          <Counter label={I18n.t('protests')} value={protests1} onInc={setProtests1} onDec={setProtests1} />
-          <Counter label={I18n.t('warnings')} value={warnings1} onInc={setWarnings1} onDec={setWarnings1} />
-      </View>
-
-      {/* ПРАВАЯ ПОЛОВИНА */}
-      <View style={[styles.side, styles.blue]}>
-        <Text style={styles.name}>{fighter2}</Text>
-        <Text style={styles.score}>{score2}</Text>
-
-        {Object.entries(hitZones).map(([zone, pts]) => (
-          <TouchableOpacity
-            key={`r-${zone}`}
-            style={styles.zoneBtn}
-            onPress={() => addPoints(2, zone as keyof typeof hitZones)}
-          >
-            <Text style={styles.zoneTxt}>
-              {I18n.t(zone)} (+{pts})
-            </Text>
-          </TouchableOpacity>
-        ))}
-          <TouchableOpacity
-            style={styles.zoneBtn}
-            onPress={() => removePoints(2)}
-          >
-            <Minus size={28} color={FG} />
-          </TouchableOpacity>
-          <Counter label={I18n.t('protests')} value={protests2} onInc={setProtests2} onDec={setProtests2} />
-          <Counter label={I18n.t('warnings')} value={warnings2} onInc={setWarnings2} onDec={setWarnings2} />
-      </View>
+          {Object.entries(hitZones).map(([zone, pts]) => (
+            <TouchableOpacity
+              key={`${i}-${zone}`}
+              style={styles.zoneBtn}
+              onPress={() => addPoints(data.setScore, zone as keyof typeof hitZones)}
+            >
+              <Text style={styles.zoneTxt}>
+                {I18n.t(zone)} (+{pts})
+              </Text>
+            </TouchableOpacity>
+          ))}
+            <TouchableOpacity
+              style={styles.zoneBtn}
+              onPress={() => removePoints(data.setScore)}
+            >
+              <Minus size={28} color={FG} />
+            </TouchableOpacity>
+            <Counter label={I18n.t('protests')} value={data.protests} onInc={data.setProtests} onDec={data.setProtests} />
+            <Counter label={I18n.t('warnings')} value={data.warnings} onInc={data.setWarnings} onDec={data.setWarnings} />
+        </View>
+      ))}
 
       <View style={[styles.bottomBar, { bottom: 115, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 }]}>
         <View style={styles.winWrap}>
@@ -239,8 +236,8 @@ const styles = StyleSheet.create({
   red: { backgroundColor: '#8B0000' },
   blue: { backgroundColor: '#00008B' },
 
-  name: { color: FG, fontSize: 24, fontFamily: "IBMPlexSansBold", marginBottom: 5 },
-  score: { color: ACCENT, fontSize: 48, fontFamily: "IBMPlexSansBold", marginBottom: 10 },
+  name: { color: FG, fontSize: 21, marginBottom: 7, fontFamily: "IBMPlexSansBold", textAlign: "center" },
+  score: { color: ACCENT, fontSize: 48, height: 40, lineHeight: 35, marginBottom: 7, fontFamily: "IBMPlexSansBold" },
 
   zoneBtn: {
     backgroundColor: '#FFFFFF15',
