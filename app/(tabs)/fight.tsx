@@ -6,22 +6,23 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Button from '@/components/Button';
 import Counter from '@/components/Counter';
 import { ACCENT, BG, FG, STORAGE_PREFIX } from '@/constants';
+import { incWin } from '@/utils/incWin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  currentPairIndexAtom,
   doubleHitsAtom,
   fighter1Atom,
   fighter2Atom,
+  fighterPairsAtom,
   fightTimeAtom,
   hitZonesAtom,
   isRunningAtom,
   protests1Atom,
   protests2Atom,
-  score1Atom,
-  score2Atom,
   soundsUpdateAtom,
   timeLeftAtom,
   warnings1Atom,
-  warnings2Atom,
+  warnings2Atom
 } from '@store';
 import I18n from '@utils/i18n';
 import { Minus, Pause, Play, RefreshCw, Trophy } from 'lucide-react-native';
@@ -31,11 +32,9 @@ const bell = require('../../assets/sounds/bell.mp3');
 const warning = require('../../assets/sounds/warning.mp3');
 
 export default function FightScreen() {
-  /* атомы */
   const [fighter1] = useAtom(fighter1Atom);
   const [fighter2] = useAtom(fighter2Atom);
-  const [score1, setScore1] = useAtom(score1Atom);
-  const [score2, setScore2] = useAtom(score2Atom);
+  const [currentPairIndex] = useAtom(currentPairIndexAtom);
   const [isRunning, setIsRunning] = useAtom(isRunningAtom);
   const [timeLeft, setTimeLeft] = useAtom(timeLeftAtom);
   const [hitZones] = useAtom(hitZonesAtom);
@@ -46,14 +45,16 @@ export default function FightScreen() {
   const [protests2,  setProtests2]  = useAtom(protests2Atom);
   const [warnings1,  setWarnings1]  = useAtom(warnings1Atom);
   const [warnings2,  setWarnings2]  = useAtom(warnings2Atom);
+  const [, setFighterPairs] = useAtom(fighterPairsAtom)
 
-  /* звуки */
   const bellPlayer = useAudioPlayer(bell);
   const warningPlayer = useAudioPlayer(warning);
-  const [bellUri,    setBellUri]   = useState<string>("");
+  const [bellUri, setBellUri]   = useState<string>("");
   const [warningUri, setWarningUri]= useState<string>("");
-  const [wins1, setWins1] = useState(0);
-  const [wins2, setWins2] = useState(0);
+
+  const [score1, setScore1] = useState(0);
+  const [score2, setScore2] = useState(0);
+  const [wins, setWins] = useState([0, 0])
 
   const checkCustomSounds = async () => {
     if (isUpdateSounds) {
@@ -93,10 +94,14 @@ export default function FightScreen() {
             setIsRunning(false);
             const isDraw = score1 === score2
             if (!isDraw) {
-              if (score1 > score2)
-                setWins1(state=>state+1)
-              if (score1 < score2)
-                setWins2(state=>state+1)
+              if (score1 > score2) {
+                incWin(fighter1, currentPairIndex, setFighterPairs)
+                setWins(prev=>[prev[0]+1, prev[1]])
+
+              } else {
+                incWin(fighter2, currentPairIndex, setFighterPairs)
+                setWins(prev=>[prev[0], prev[1]+1])
+              }
             }
             Toast.show({
               type: "info",
@@ -125,6 +130,7 @@ export default function FightScreen() {
     setWarnings2(0);
     setTimeLeft(fightTime);
     setIsRunning(false);
+    setWins([0, 0])
     warningPlayer.pause();
     bellPlayer.pause();
   };
@@ -203,12 +209,12 @@ export default function FightScreen() {
 
       <View style={[styles.bottomBar, { bottom: 115, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 }]}>
         <View style={styles.winWrap}>
-          <Text style={styles.winText}>{wins1}</Text>
+          <Text style={styles.winText}>{wins[0]}</Text>
           <Trophy size={28} color={ACCENT} />
         </View>
         <Counter label={I18n.t('doubleHits')} value={doubleHits} onInc={setDoubleHits} onDec={setDoubleHits} />
         <View style={styles.winWrap}>
-          <Text style={styles.winText}>{wins2}</Text>
+          <Text style={styles.winText}>{wins[1]}</Text>
           <Trophy size={28} color={ACCENT} />
         </View>
       </View>

@@ -4,14 +4,15 @@ export const fightTimeDefault = 180;
 
 // Основные атомы таймера
 export const fightTimeAtom = atom(fightTimeDefault); // Время боя в секундах (по умолчанию 3 минуты)
-export const fighter1Atom = atom('Fighter1'); // Имя первого бойца
-export const fighter2Atom = atom('Fighter2'); // Имя второго бойца
-export const score1Atom = atom(0); // Очки первого бойца
-export const score2Atom = atom(0); // Очки второго бойца
+export const fighter1Atom = atom('Fighter A'); // Имя первого бойца
+export const fighter2Atom = atom('Fighter B'); // Имя второго бойца
+export const win1Atom = atom(0); // Очки первого бойца
+export const win2Atom = atom(0); // Очки второго бойца
 export const isRunningAtom = atom(false); // Состояние таймера (запущен/остановлен)
 export const timeLeftAtom = atom(fightTimeDefault); // Оставшееся время
 export const languageAtom = atom('en'); // Язык интерфейса ('en', 'ru', 'zh')
 export const soundsUpdateAtom = atom(true); // Обновление звуков
+export const sameGenderOnlyAtom = atom(false); // Сортировка по полу
 
 // Атомы для новых функций
 export const doubleHitsAtom = atom(0); // Флаг учета обоюдных попаданий
@@ -20,14 +21,16 @@ export const protests2Atom = atom(0); // Флаг учета протестов 
 export const warnings1Atom = atom(0); // Счетчик предупреждений для бойца 1
 export const warnings2Atom = atom(0); // Счетчик предупреждений для бойца 2
 
-export type ParticipantType = { name: string; gender: 'M' | 'F' };
+export type ParticipantType = { name: string; gender: 'M' | 'F', win: number };
 
 // Атомы для управления парами бойцов
 export const fighterPairsAtom = atom<ParticipantType[][]>([
   // Массив пар бойцов по умолчанию
-  [{ name: 'Fighter A', gender: "M"}, { name: 'Fighter B', gender: "M" }],
-  [{ name: 'Fighter C', gender: "F" }, { name: 'Fighter D', gender: "F" }]
+  [{ name: 'Fighter A', gender: "M", win: 0}, { name: 'Fighter B', gender: "M", win: 0 }],
+  [{ name: 'Fighter C', gender: "F", win: 0 }, { name: 'Fighter D', gender: "F", win: 0 }]
 ]);
+
+export const duelsAtom = atom<ParticipantType[][][]>([])
 
 export const hitZonesDefault = {
   head: 3,

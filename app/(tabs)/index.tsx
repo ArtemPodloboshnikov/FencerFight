@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { Mars, Plus, RefreshCw, Save, Trash2, Venus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -12,6 +12,7 @@ import Button from '@/components/Button';
 import Section from '@/components/Section';
 import ToastCustom from '@/components/ToastCustom';
 import { ACCENT, ACCENT_TRANSPARENT, BG, FG, langLabels, PLACEHOLDER, STORAGE_PREFIX, SURFACE } from '@/constants';
+import { generatePairs } from '@/utils/generatePairs';
 import {
   currentPairIndexAtom,
   fighter1Atom,
@@ -23,6 +24,7 @@ import {
   hitZonesDefault,
   languageAtom,
   ParticipantType,
+  sameGenderOnlyAtom,
   soundsUpdateAtom
 } from '@store';
 import I18n from '@utils/i18n';
@@ -31,17 +33,17 @@ export default function SettingsScreen() {
   /* ---------- атомы ---------- */
   const [fightTime, setFightTime] = useAtom(fightTimeAtom);
   const [hitZones, setHitZones] = useAtom(hitZonesAtom);
-  const setFighter1 = useSetAtom(fighter1Atom);
-  const setFighter2 = useSetAtom(fighter2Atom);
+  const [, setFighter1] = useAtom(fighter1Atom);
+  const [, setFighter2] = useAtom(fighter2Atom);
   const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom);
   const [currentPairIndex, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
   const [language, setLanguage] = useAtom(languageAtom);
-  const setUpdateSounds = useSetAtom(soundsUpdateAtom)
+  const [sameGenderOnly, setSameGenderOnly] = useAtom(sameGenderOnlyAtom);
+  const [, setUpdateSounds] = useAtom(soundsUpdateAtom);
 
 
   /* ---------- состояние ---------- */
   const [newName, setNewName]           = useState('');
-  const [sameGenderOnly, setSameGenderOnly] = useState(false);
   const [participants, setParticipants] = useState<ParticipantType[]>([]);
   const [newGender, setNewGender] = useState<'M' | 'F'>('M');
   const [showPicker, setShowPicker] = useState(false);
@@ -86,45 +88,19 @@ export default function SettingsScreen() {
   const addParticipant = () => {
     const name = newName.trim();
     if (!name) return;
-    setParticipants([...participants, { name, gender: newGender }]);
+    setParticipants([...participants, { name, gender: newGender, win: 0 }]);
     setNewName('');
   };
   const removeParticipant = (idx: number) =>
     setParticipants(participants.filter((_, i) => i !== idx));
 
-  const generatePairs = () => {
-  if (participants.length < 2) {
-    Toast.show({ type: 'error', text1: I18n.t('addTwoFighters') });
-    return;
-  }
-
-  let shuffled = [...participants].sort(() => Math.random() - 0.5);
-  const pairs: ParticipantType[][] = [];
-
-  if (sameGenderOnly) {
-    const males = shuffled.filter((p) => p.gender === 'M');
-    const females = shuffled.filter((p) => p.gender === 'F');
-
-    [males, females].forEach((group) => {
-      for (let i = 0; i < group.length - 1; i += 2) {
-        pairs.push([group[i], group[i + 1]]);
-      }
-      if (group.length % 2 !== 0) {
-        pairs.push([group[group.length - 1], { name: '—', gender: group[group.length - 1].gender }]);
-      }
-    });
-    setFighterPairs(pairs);
-  } else {
-    /* старая логика без фильтра по полу */
-
-    for (let i = 0; i < shuffled.length - 1; i += 2) {
-      pairs.push([shuffled[i], shuffled[i + 1]]);
-      }
-      if (shuffled.length % 2 !== 0) {
-        pairs.push([shuffled[shuffled.length - 1], { name: '—', gender: shuffled[shuffled.length - 1].gender } ]);
-      }
-        setFighterPairs(pairs);
+  const genPairs = () => {
+    if (participants.length < 2) {
+      Toast.show({ type: 'error', text1: I18n.t('addTwoFighters') });
+      return;
     }
+
+    const pairs = generatePairs(participants, sameGenderOnly, setFighterPairs)
 
     setCurrentPairIndex(0);
     setFighter1(pairs[0][0].name);
@@ -273,7 +249,7 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <Button style={{ marginTop: 10 }} onPress={generatePairs} title={I18n.t('randomizePairs')} stroke />
+        <Button style={{ marginTop: 10 }} onPress={genPairs} title={I18n.t('randomizePairs')} stroke />
       </Section>
 
       <Section title={I18n.t('pairs')}>

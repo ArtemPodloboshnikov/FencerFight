@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ACCENT, FG } from '@/constants';
 import { Tabs } from 'expo-router';
-import { Settings, Swords } from 'lucide-react-native';
+import { Settings, Swords, Table } from 'lucide-react-native';
 import { Platform } from 'react-native';
 
 export default function TabLayout() {
@@ -29,6 +29,12 @@ export default function TabLayout() {
         name="fight"
         options={{
           tabBarIcon: ({ focused }) => <Swords size={28} color={focused ? ACCENT : FG} />,
+        }}
+      />
+      <Tabs.Screen
+        name="grid"
+        options={{
+          tabBarIcon: ({ focused }) => <Table size={28} color={focused ? ACCENT : FG} />,
         }}
       />
     </Tabs>
