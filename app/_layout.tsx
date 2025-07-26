@@ -3,11 +3,28 @@ import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Updates from 'expo-updates';
 import { Provider } from 'jotai';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 import Toast, { BaseToast } from 'react-native-toast-message';
 
 export default function RootLayout() {
+    useEffect(() => {
+    if (!__DEV__) {
+      (async () => {
+        try {
+          const { isAvailable } = await Updates.checkForUpdateAsync();
+          if (isAvailable) {
+            await Updates.fetchUpdateAsync();
+            await Updates.reloadAsync();
+          }
+        } catch (e) {
+          console.log('Update check error:', e);
+        }
+      })();
+    }
+  }, []);
   const [loaded] = useFonts({
     IBMPlexSansRegular: require('../assets/fonts/IBMPlexSans-Regular.ttf'),
     IBMPlexSansMedium:  require('../assets/fonts/IBMPlexSans-Medium.ttf'),
