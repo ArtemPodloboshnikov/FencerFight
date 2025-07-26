@@ -115,11 +115,6 @@ export default function FightScreen() {
     return () => clearInterval(iv);
   }, [isRunning, timeLeft, bellPlayer, warningPlayer]);
 
-  const inc = (setter: React.Dispatch<React.SetStateAction<number>>) =>
-    setter((s) => s + 1);
-  const dec = (setter: React.Dispatch<React.SetStateAction<number>>) =>
-    setter((s) => Math.max(0, s - 1));
-
   const resetFight = () => {
     setScore1(0);
     setScore2(0);
@@ -179,8 +174,8 @@ export default function FightScreen() {
           >
             <Minus size={28} color={FG} />
           </TouchableOpacity>
-          <Counter label={I18n.t('protests')} value={protests1} onInc={() => inc(setProtests1)} onDec={() => dec(setProtests1)} />
-          <Counter label={I18n.t('warnings')} value={warnings1} onInc={() => inc(setWarnings1)} onDec={() => dec(setWarnings1)} />
+          <Counter label={I18n.t('protests')} value={protests1} onInc={setProtests1} onDec={setProtests1} />
+          <Counter label={I18n.t('warnings')} value={warnings1} onInc={setWarnings1} onDec={setWarnings1} />
       </View>
 
       {/* ПРАВАЯ ПОЛОВИНА */}
@@ -205,8 +200,8 @@ export default function FightScreen() {
           >
             <Minus size={28} color={FG} />
           </TouchableOpacity>
-          <Counter label={I18n.t('protests')} value={protests2} onInc={() => inc(setProtests2)} onDec={() => dec(setProtests2)} />
-          <Counter label={I18n.t('warnings')} value={warnings2} onInc={() => inc(setWarnings2)} onDec={() => dec(setWarnings2)} />
+          <Counter label={I18n.t('protests')} value={protests2} onInc={setProtests2} onDec={setProtests2} />
+          <Counter label={I18n.t('warnings')} value={warnings2} onInc={setWarnings2} onDec={setWarnings2} />
       </View>
 
       <View style={[styles.bottomBar, { bottom: 115, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 }]}>
@@ -214,7 +209,7 @@ export default function FightScreen() {
           <Text style={styles.winText}>{wins1}</Text>
           <Trophy size={28} color={ACCENT} />
         </View>
-        <Counter label={I18n.t('doubleHits')} value={doubleHits} onInc={()=>inc(setDoubleHits)} onDec={()=>dec(setDoubleHits)} />
+        <Counter label={I18n.t('doubleHits')} value={doubleHits} onInc={setDoubleHits} onDec={setDoubleHits} />
         <View style={styles.winWrap}>
           <Text style={styles.winText}>{wins2}</Text>
           <Trophy size={28} color={ACCENT} />

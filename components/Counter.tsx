@@ -10,18 +10,22 @@ export default function Counter({
   }: {
     label: string;
     value: number;
-    onInc: () => void;
-    onDec: () => void;
+    onInc: React.Dispatch<React.SetStateAction<number>>;
+    onDec: React.Dispatch<React.SetStateAction<number>>;
   }) {
+    const inc = (setter: React.Dispatch<React.SetStateAction<number>>) =>
+        setter((s) => s + 1);
+    const dec = (setter: React.Dispatch<React.SetStateAction<number>>) =>
+        setter((s) => Math.max(0, s - 1));
     return (
         <View style={styles.wrap}>
             <Text style={styles.counterLabel}>{label}</Text>
             <View style={styles.counterRow}>
-            <TouchableOpacity onPress={onDec}>
+            <TouchableOpacity onPress={()=>dec(onDec)}>
                 <Minus size={20} color={FG} />
             </TouchableOpacity>
             <Text style={styles.counterValue}>{value}</Text>
-            <TouchableOpacity onPress={onInc}>
+            <TouchableOpacity onPress={()=>inc(onInc)}>
                 <Plus size={20} color={FG} />
             </TouchableOpacity>
             </View>
