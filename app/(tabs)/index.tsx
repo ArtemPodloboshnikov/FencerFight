@@ -168,6 +168,8 @@ export default function SettingsScreen() {
     })
   }
 
+  const getName = (name: string)=> name.length <= 14 ? name : onlySurname(name, 14)
+
   useEffect(()=>{
     if (showUpdateBtn) {
       Toast.show({
@@ -264,7 +266,7 @@ export default function SettingsScreen() {
             <Button
             key={idx}
             style={currentPairIndex === idx ? {...styles.pairItem, backgroundColor: ACCENT} : styles.pairItem}
-            title={`${pair[0]?.name.length <= 14 ? pair[0]?.name : onlySurname(pair[0]?.name, 14)} VS ${pair[1]?.name.length <= 14 ? pair[1]?.name : onlySurname(pair[1]?.name, 14)}`}
+            title={`${getName(pair[0].name)} VS ${getName(pair[1].name)}`}
             onPress={() => selectPair(idx)}
             />
           ))}
