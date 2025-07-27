@@ -6,13 +6,12 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Button from '@/components/Button';
 import Counter from '@/components/Counter';
 import { ACCENT, BG, FG, STORAGE_PREFIX } from '@/constants';
+import { truncateFullName } from '@/utils/helpers';
 import { incWin } from '@/utils/incWin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   currentPairIndexAtom,
   doubleHitsAtom,
-  fighter1Atom,
-  fighter2Atom,
   fighterPairsAtom,
   fightTimeAtom,
   hitZonesAtom,
@@ -32,8 +31,6 @@ const bell = require('../../assets/sounds/bell.mp3');
 const warning = require('../../assets/sounds/warning.mp3');
 
 export default function FightScreen() {
-  const [fighter1] = useAtom(fighter1Atom);
-  const [fighter2] = useAtom(fighter2Atom);
   const [currentPairIndex] = useAtom(currentPairIndexAtom);
   const [isRunning, setIsRunning] = useAtom(isRunningAtom);
   const [timeLeft, setTimeLeft] = useAtom(timeLeftAtom);
@@ -45,12 +42,14 @@ export default function FightScreen() {
   const [protests2,  setProtests2]  = useAtom(protests2Atom);
   const [warnings1,  setWarnings1]  = useAtom(warnings1Atom);
   const [warnings2,  setWarnings2]  = useAtom(warnings2Atom);
-  const [, setFighterPairs] = useAtom(fighterPairsAtom)
+  const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom)
 
   const bellPlayer = useAudioPlayer(bell);
   const warningPlayer = useAudioPlayer(warning);
   const [bellUri, setBellUri]   = useState<string>("");
   const [warningUri, setWarningUri]= useState<string>("");
+  const fighter1 = fighterPairs[currentPairIndex][0]?.name;
+  const fighter2 = fighterPairs[currentPairIndex][1]?.name
 
   const [score1, setScore1] = useState(0);
   const [score2, setScore2] = useState(0);
@@ -106,9 +105,9 @@ export default function FightScreen() {
             Toast.show({
               type: "info",
               text1: I18n.t(isDraw ? "draw" : "win"),
-              text1Style: { fontSize: 30, color: ACCENT, fontFamily: "IBMPlexSansSemiBold" },
+              text1Style: { fontSize: 30, fontFamily: "IBMPlexSansSemiBold" },
               text2: (isDraw) ? "" : (score1 > score2 ? fighter1 : fighter2),
-              text2Style: { fontSize: 26, color: FG, fontFamily: "IBMPlexSansRegular" },
+              text2Style: { fontSize: 26, fontFamily: "IBMPlexSansRegular" },
             })
             setTimeout(()=>{if (bellPlayer.playing) bellPlayer.pause();}, 5000)
             return fightTime
@@ -149,12 +148,16 @@ export default function FightScreen() {
   };
 
   const removePoints = (setter: React.Dispatch<React.SetStateAction<number>>) => {
-    setter((s) => s - 1);
+    setter((s) => Math.max(0, s - 1));
   };
 
   useEffect(() => {
     setTimeLeft(fightTime);
   }, [fightTime]);
+
+  useEffect(()=>{
+    resetFight()
+  }, [currentPairIndex])
 
   return (
     <View style={styles.container}>
@@ -182,7 +185,7 @@ export default function FightScreen() {
         }
       ].map((data, i)=>(
         <View style={[styles.side, data.styleWrap]} key={i}>
-          <Text style={styles.name}>{data.name.replace(/ /g, '\n')}</Text>
+          <Text style={styles.name}>{truncateFullName(data?.name, 19).replace(/ /g, '\n')}</Text>
           <Text style={styles.score}>{data.score}</Text>
 
           {Object.entries(hitZones).map(([zone, pts]) => (
@@ -238,7 +241,7 @@ export default function FightScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, flexDirection: 'row' },
-  side: { flex: 1, paddingTop: 60, alignItems: 'center' },
+  side: { flex: 1, paddingTop: 55, alignItems: 'center' },
   red: { backgroundColor: '#8B0000' },
   blue: { backgroundColor: '#00008B' },
 

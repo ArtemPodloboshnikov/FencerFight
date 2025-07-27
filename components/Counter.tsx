@@ -22,11 +22,11 @@ export default function Counter({
             <Text style={styles.counterLabel}>{label}</Text>
             <View style={styles.counterRow}>
             <TouchableOpacity onPress={()=>dec(onDec)}>
-                <Minus size={20} color={FG} />
+                <Minus size={24} color={FG} />
             </TouchableOpacity>
             <Text style={styles.counterValue}>{value}</Text>
             <TouchableOpacity onPress={()=>inc(onInc)}>
-                <Plus size={20} color={FG} />
+                <Plus size={24} color={FG} />
             </TouchableOpacity>
             </View>
         </View>

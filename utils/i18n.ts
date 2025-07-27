@@ -3,7 +3,7 @@ import { I18n } from "i18n-js";
 
 const i18n = new I18n({
   en: {
-    fighterName: 'Fighter Name',
+    name: 'Name',
     fightDuration: 'Fight Duration',
     doubleHits: 'Double Hits',
     protests: 'Protests',
@@ -27,10 +27,15 @@ const i18n = new I18n({
     draw: "Draw",
     reset: "Initial settings",
     sameGenderPairs: "Same-gender pairs only",
-    editTime: "Edit time"
+    editTime: "Edit time",
+    stage: "stage",
+    stageEnd: "Finish stage",
+    currentStage: "Current stage",
+    newVersion: "New app version is available",
+    updateBtn: "Update button at the bottom of settings"
   },
   ru: {
-    fighterName: 'Имя бойца',
+    name: 'Имя',
     fightDuration: 'Длительность боя',
     doubleHits: 'Обоюдки',
     protests: 'Протесты',
@@ -54,10 +59,15 @@ const i18n = new I18n({
     draw: "Ничья",
     reset: "Исходные настройки",
     sameGenderPairs: "Пары только одного пола",
-    editTime: "Изменить время"
+    editTime: "Изменить время",
+    stage: "тур",
+    stageEnd: "Окончить тур",
+    currentStage: "Текущий тур",
+    newVersion: "Доступна новая версия приложения",
+    updateBtn: "Кнопка обновления внизу настроек"
   },
   zh: {
-    fighterName: "战斗机的名字",
+    name: "姓名",
     fightDuration: "战斗持续时间",
     doubleHits: "相互影响",
     protests: "抗议",
@@ -81,7 +91,12 @@ const i18n = new I18n({
     draw: "平局",
     reset: "初始设置",
     sameGenderPairs: "仅限同性配对",
-    editTime: "编辑时间"
+    editTime: "编辑时间",
+    stage: "阶段",
+    stageEnd: "完成舞台",
+    currentStage: "当前阶段",
+    newVersion: "应用程序的新版本可用",
+    updateBtn: "设置页面底部的更新按钮"
   }
 });
 

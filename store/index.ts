@@ -4,8 +4,6 @@ export const fightTimeDefault = 180;
 
 // Основные атомы таймера
 export const fightTimeAtom = atom(fightTimeDefault); // Время боя в секундах (по умолчанию 3 минуты)
-export const fighter1Atom = atom('Fighter A'); // Имя первого бойца
-export const fighter2Atom = atom('Fighter B'); // Имя второго бойца
 export const win1Atom = atom(0); // Очки первого бойца
 export const win2Atom = atom(0); // Очки второго бойца
 export const isRunningAtom = atom(false); // Состояние таймера (запущен/остановлен)

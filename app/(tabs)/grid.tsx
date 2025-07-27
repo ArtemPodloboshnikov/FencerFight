@@ -1,43 +1,86 @@
 import Button from '@/components/Button';
 import DataTable from '@/components/DataTable';
-import { BG, FG } from '@/constants';
+import { FG } from '@/constants';
+import { exportExcel } from '@/utils/exportExcel';
 import { generatePairs } from '@/utils/generatePairs';
-import { currentPairIndexAtom, duelsAtom, fighterPairsAtom, sameGenderOnlyAtom } from '@store';
+import { truncate } from '@/utils/helpers';
+import { currentPairIndexAtom, duelsAtom, fighterPairsAtom, ParticipantType, sameGenderOnlyAtom } from '@store';
+import I18n from '@utils/i18n';
 import { useAtom } from 'jotai';
+import { Share2 } from 'lucide-react-native';
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 export default function TournamentGridScreen() {
   const [fighterPairs, setFighterPairs]   = useAtom(fighterPairsAtom);
   const [sameGenderOnly] = useAtom(sameGenderOnlyAtom);
   const [, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
   const [duels, setDuels] = useAtom(duelsAtom);
-  const headers = ['Боец 1', 'Победы 1', 'Победы 2', 'Боец 2'];
+  const headers = [I18n.t('name'), I18n.t('win'), I18n.t('win'), I18n.t('name')];
 
   const genPairs = ()=>{
     const newFighters = fighterPairs.map(pair=>pair[0].win > pair[1].win ? { ...pair[0], win: 0 } : { ...pair[1], win: 0 })
     setDuels(prev=>[...prev, fighterPairs])
-    generatePairs(newFighters, sameGenderOnly, setFighterPairs)
-    setCurrentPairIndex(0)
+    if (newFighters.length > 1) {
+      generatePairs(newFighters, sameGenderOnly, setFighterPairs, setCurrentPairIndex)
+    } else {
+      setFighterPairs([[]])
+    }
   }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <DataTable data={fighterPairs.map(([f1, f2]) => [f1.name, f1.win.toString(), f2.win.toString(), f2.name])} headers={headers} />
-      <Button title={"Окончить 1 тур"} onPress={genPairs} />
+  const getDataTable = (data: ParticipantType[][]) => data.map(([f1, f2]) => [truncate(f1.name), f1.win.toString(), f2.win.toString(), truncate(f2.name)])
 
-      {duels.length ? duels.map((duel, i)=>
-        <View key={i} style={styles.duelWrap}>
-            <Text style={styles.duelTitle}>{`${i+1} тур`}</Text>
-            <DataTable data={duel.map(([f1, f2]) => [f1.name, f1.win.toString(), f2.win.toString(), f2.name])} headers={headers} />
+    /* собираем все секции в массив для FlatList */
+  const sections = [
+    /* текущий этап */
+    ...(fighterPairs.filter(p => p.length).length
+      ? [
+          { key: 'current', title: I18n.t('currentStage'), data: getDataTable(fighterPairs) },
+        ]
+      : []),
+    /* исторические этапы */
+    ...duels.map((duel, i) => ({
+      key: `duel-${i}`,
+      title: `${i + 1} ${I18n.t('stage')}`,
+      data: getDataTable(duel),
+    })),
+  ];
+
+  return (
+    <FlatList
+      data={sections}
+      keyExtractor={(item) => item.key}
+      contentContainerStyle={styles.container}
+      renderItem={({ item, index }) => (
+        <View style={styles.duelWrap}>
+          <Text style={styles.duelTitle}>{item.title}</Text>
+          <DataTable data={item.data} headers={headers} />
+          {index === 0 ?
+          (fighterPairs.filter(p => p.length).length ? (
+            <Button
+              title={I18n.t('stageEnd')}
+              onPress={genPairs}
+              disabled={
+                fighterPairs.length !== fighterPairs.filter(pairs=>pairs.filter(pair=>pair.win).length).length
+              }
+            />
+          ) : <></>)
+          :
+          <></>
+          }
         </View>
-      ): <></>}
-    </SafeAreaView>
+      )}
+      ListFooterComponent={
+        <Button onPress={() => exportExcel(duels)}>
+          <Share2 color={FG} size={28} />
+        </Button>
+      }
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG, padding: 16, paddingTop: 70, rowGap: 20 },
-  duelWrap: { flexDirection: "column", rowGap: 10 },
-  duelTitle: { color: FG, textAlign: "center" }
+  container: { padding: 16, paddingTop: 50 },
+  duelWrap: { flexDirection: "column", rowGap: 10, marginBottom: 20 },
+  duelTitle: { color: FG, textAlign: "center", fontFamily: "IBMPlexSansBold", fontSize: 28 }
 });

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { useAtom } from 'jotai';
-import { Mars, Plus, RefreshCw, Save, Trash2, Venus } from 'lucide-react-native';
+import { CloudDownload, Mars, Plus, RefreshCw, Save, Trash2, Venus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { TimerPicker } from 'react-native-timer-picker';
@@ -12,11 +12,12 @@ import Button from '@/components/Button';
 import Section from '@/components/Section';
 import ToastCustom from '@/components/ToastCustom';
 import { ACCENT, ACCENT_TRANSPARENT, BG, FG, langLabels, PLACEHOLDER, STORAGE_PREFIX, SURFACE } from '@/constants';
+import { useAppUpdate } from '@/hooks/useAppUpdate';
 import { generatePairs } from '@/utils/generatePairs';
+import { onlySurname } from '@/utils/helpers';
 import {
   currentPairIndexAtom,
-  fighter1Atom,
-  fighter2Atom,
+  duelsAtom,
   fighterPairsAtom,
   fightTimeAtom,
   fightTimeDefault,
@@ -33,17 +34,17 @@ export default function SettingsScreen() {
   /* ---------- атомы ---------- */
   const [fightTime, setFightTime] = useAtom(fightTimeAtom);
   const [hitZones, setHitZones] = useAtom(hitZonesAtom);
-  const [, setFighter1] = useAtom(fighter1Atom);
-  const [, setFighter2] = useAtom(fighter2Atom);
   const [fighterPairs, setFighterPairs] = useAtom(fighterPairsAtom);
   const [currentPairIndex, setCurrentPairIndex] = useAtom(currentPairIndexAtom);
   const [language, setLanguage] = useAtom(languageAtom);
   const [sameGenderOnly, setSameGenderOnly] = useAtom(sameGenderOnlyAtom);
   const [, setUpdateSounds] = useAtom(soundsUpdateAtom);
+  const [, setDuels] = useAtom(duelsAtom);
+  const { showUpdateBtn, applyUpdate } = useAppUpdate()
 
 
   /* ---------- состояние ---------- */
-  const [newName, setNewName]           = useState('');
+  const [newName, setNewName] = useState('');
   const [participants, setParticipants] = useState<ParticipantType[]>([]);
   const [newGender, setNewGender] = useState<'M' | 'F'>('M');
   const [showPicker, setShowPicker] = useState(false);
@@ -72,16 +73,12 @@ export default function SettingsScreen() {
       type: "success",
       text1: '✓',
       text2: I18n.t('settingsSaved'),
-      text2Style: { fontFamily: "IBMPlexSansMedium" }
     })
   };
 
     const selectPair = (idx: number) => {
       if (idx < 0 || idx >= fighterPairs.length) return;
-      const pair = fighterPairs[idx];
       setCurrentPairIndex(idx);
-      setFighter1(pair[0].name);
-      setFighter2(pair[1].name);
     };
 
   /* ---------- участники ---------- */
@@ -96,15 +93,16 @@ export default function SettingsScreen() {
 
   const genPairs = () => {
     if (participants.length < 2) {
-      Toast.show({ type: 'error', text1: I18n.t('addTwoFighters') });
+      Toast.show({
+        type: 'error',
+        text1: I18n.t('addTwoFighters'),
+      });
       return;
     }
 
-    const pairs = generatePairs(participants, sameGenderOnly, setFighterPairs)
+    setDuels([])
+    generatePairs(participants, sameGenderOnly, setFighterPairs, setCurrentPairIndex)
 
-    setCurrentPairIndex(0);
-    setFighter1(pairs[0][0].name);
-    setFighter2(pairs[0][1].name);
   };
 
   /* ---------- звуки ---------- */
@@ -121,7 +119,6 @@ export default function SettingsScreen() {
           type: "success",
           text1: "✓",
           text2: `${type} ${I18n.t("updated")}`,
-          text2Style: { fontFamily: "IBMPlexSansMedium" }
         })
         setUpdateSounds(true)
       }
@@ -130,7 +127,6 @@ export default function SettingsScreen() {
           type: "error",
           text1: "X",
           text2: `${e}`,
-          text2Style: { fontFamily: "IBMPlexSansMedium" }
         })
     }
   };
@@ -172,6 +168,16 @@ export default function SettingsScreen() {
     })
   }
 
+  useEffect(()=>{
+    if (showUpdateBtn) {
+      Toast.show({
+        type: "info",
+        text1: I18n.t('newVersion'),
+        text2: I18n.t('updateBtn'),
+      })
+    }
+  }, [showUpdateBtn])
+
   useEffect(() => {
   (async () => {
     const savedLang = await AsyncStorage.getItem(STORAGE_PREFIX + 'language');
@@ -195,7 +201,7 @@ export default function SettingsScreen() {
       {/* --- 1. Участники --- */}
       <Section title={I18n.t('participants')}>
         <TextInput
-          placeholder={I18n.t('fighterName')}
+          placeholder={I18n.t('name')}
           value={newName}
           onChangeText={setNewName}
           style={styles.input}
@@ -252,16 +258,20 @@ export default function SettingsScreen() {
         <Button style={{ marginTop: 10 }} onPress={genPairs} title={I18n.t('randomizePairs')} stroke />
       </Section>
 
-      <Section title={I18n.t('pairs')}>
-        {fighterPairs.map((pair, idx) => (
-          <Button
-          key={idx}
-          style={currentPairIndex === idx ? {...styles.pairItem, backgroundColor: ACCENT} : styles.pairItem}
-          onPress={() => selectPair(idx)}
-          title={`${pair[0].name} vs ${pair[1].name}`}
-          />
-        ))}
-      </Section>
+      {fighterPairs[0][0] ?
+        <Section title={I18n.t('pairs')}>
+          {fighterPairs.map((pair, idx) => (
+            <Button
+            key={idx}
+            style={currentPairIndex === idx ? {...styles.pairItem, backgroundColor: ACCENT} : styles.pairItem}
+            title={`${pair[0]?.name.length <= 14 ? pair[0]?.name : onlySurname(pair[0]?.name, 14)} VS ${pair[1]?.name.length <= 14 ? pair[1]?.name : onlySurname(pair[1]?.name, 14)}`}
+            onPress={() => selectPair(idx)}
+            />
+          ))}
+        </Section>
+        :
+        <></>
+      }
 
       {/* --- 2. Длительность --- */}
       <Section title={I18n.t('fightDuration')}>
@@ -300,6 +310,12 @@ export default function SettingsScreen() {
         <Button onPress={resetAll} style={{ marginTop: 10 }} stroke>
           <RefreshCw size={28} color={FG} />
         </Button>
+        {showUpdateBtn ?
+          <Button style={{ marginTop: 10 }} onPress={applyUpdate}>
+            <CloudDownload size={28} color={FG} />
+          </Button>
+          :<></>
+        }
       </Section>
     </ScrollView>
     {/* --- Toast с TimePiker --- */}

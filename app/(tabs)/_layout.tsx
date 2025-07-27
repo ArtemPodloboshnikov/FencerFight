@@ -3,9 +3,10 @@ import React from 'react';
 import { ACCENT, FG } from '@/constants';
 import { Tabs } from 'expo-router';
 import { Settings, Swords, Table } from 'lucide-react-native';
-import { Platform } from 'react-native';
+import { Platform, StyleProp, ViewStyle } from 'react-native';
 
 export default function TabLayout() {
+  const commonStyle: StyleProp<ViewStyle> = { marginTop: 10 }
   return (
     <Tabs
       screenOptions={{
@@ -22,19 +23,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ focused }) => <Settings size={28} color={focused ? ACCENT : FG} />,
+          tabBarIcon: ({ focused }) => <Settings size={28} color={focused ? ACCENT : FG} style={commonStyle} />,
         }}
       />
       <Tabs.Screen
         name="fight"
         options={{
-          tabBarIcon: ({ focused }) => <Swords size={28} color={focused ? ACCENT : FG} />,
+          tabBarIcon: ({ focused }) => <Swords size={28} color={focused ? ACCENT : FG} style={commonStyle} />,
         }}
       />
       <Tabs.Screen
         name="grid"
         options={{
-          tabBarIcon: ({ focused }) => <Table size={28} color={focused ? ACCENT : FG} />,
+          tabBarIcon: ({ focused }) => <Table size={28} color={focused ? ACCENT : FG} style={commonStyle} />,
         }}
       />
     </Tabs>
